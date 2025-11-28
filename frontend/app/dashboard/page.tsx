@@ -1,17 +1,83 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { FiUpload, FiLayout, FiFileText, FiGlobe, FiMessageSquare, FiDollarSign } from 'react-icons/fi'
 
+type StatEntry = {
+  label: string
+  value: number
+  change: number
+}
+
+type PharmacyStats = {
+  totalOrders: number
+  totalOrdersChange: number
+  pendingOrders: number
+  pendingOrdersChange: number
+  monthlyOrders: number
+  monthlyOrdersChange: number
+}
+
+const defaultPharmacyStats: PharmacyStats = {
+  totalOrders: 342,
+  totalOrdersChange: 18,
+  pendingOrders: 12,
+  pendingOrdersChange: -2,
+  monthlyOrders: 267,
+  monthlyOrdersChange: 8,
+}
+
+const formatChange = (value: number) => `${value > 0 ? '+' : ''}${value}%`
+
+const AnimatedNumber = ({ value, duration = 900 }: { value: number; duration?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0)
+  const startValueRef = useRef(0)
+  const rafRef = useRef<number>()
+
+  useEffect(() => {
+    const startValue = startValueRef.current
+    const difference = value - startValue
+    const startTime = performance.now()
+
+    const step = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const nextValue = Math.round(startValue + difference * progress)
+      setDisplayValue(nextValue)
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(step)
+      } else {
+        startValueRef.current = value
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(step)
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [value, duration])
+
+  useEffect(() => {
+    startValueRef.current = 0
+    setDisplayValue(0)
+  }, [])
+
+  return <>{displayValue.toLocaleString()}</>
+}
+
 export default function DashboardPage() {
   const [userType, setUserType] = useState<'hospital' | 'pharmacy'>('hospital')
   const [selectedFeatures, setSelectedFeatures] = useState<any>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null)
   const [totalPrice, setTotalPrice] = useState<number>(0)
+  const [pharmacyStats, setPharmacyStats] = useState<PharmacyStats>(defaultPharmacyStats)
 
   useEffect(() => {
     // Get user type from localStorage
@@ -38,7 +104,38 @@ export default function DashboardPage() {
     if (template) {
       setSelectedTemplate(parseInt(template))
     }
+
+    const storedPharmacyStats = localStorage.getItem('pharmacyStats')
+    if (storedPharmacyStats) {
+      try {
+        const parsedStats = JSON.parse(storedPharmacyStats)
+        setPharmacyStats((prev) => ({
+          ...prev,
+          ...parsedStats,
+        }))
+      } catch (error) {
+        console.error('Failed to parse pharmacy stats from localStorage', error)
+      }
+    }
   }, [])
+
+  const pharmacyStatEntries: StatEntry[] = [
+    {
+      label: 'Total Orders',
+      value: pharmacyStats.totalOrders,
+      change: pharmacyStats.totalOrdersChange,
+    },
+    {
+      label: 'Pending Orders',
+      value: pharmacyStats.pendingOrders,
+      change: pharmacyStats.pendingOrdersChange,
+    },
+    {
+      label: 'This Month',
+      value: pharmacyStats.monthlyOrders,
+      change: pharmacyStats.monthlyOrdersChange,
+    },
+  ]
 
   const setupSteps = [
     { label: 'Upload Logo', completed: false },
@@ -47,30 +144,26 @@ export default function DashboardPage() {
     { label: 'Publish', completed: false },
   ]
 
-  const stats = userType === 'hospital' 
+  const stats: StatEntry[] = userType === 'hospital' 
     ? [
-        { label: 'Total Appointments', value: '124', change: '+12%' },
-        { label: 'Pending Appointments', value: '8', change: '-3%' },
-        { label: 'This Month', value: '89', change: '+5%' },
+        { label: 'Total Appointments', value: 124, change: 12 },
+        { label: 'Pending Appointments', value: 8, change: -3 },
+        { label: 'This Month', value: 89, change: 5 },
       ]
-    : [
-        { label: 'Total Orders', value: '342', change: '+18%' },
-        { label: 'Pending Orders', value: '12', change: '-2%' },
-        { label: 'This Month', value: '267', change: '+8%' },
-      ]
+    : pharmacyStatEntries
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-dark mb-2">Dashboard</h1>
-        <p className="text-neutral-gray">Welcome back! Here's your website setup progress.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-neutral-dark mb-2">Dashboard</h1>
+        <p className="text-sm sm:text-base text-neutral-gray">Welcome back! Here's your website setup progress.</p>
       </div>
 
       {/* Setup Progress */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold text-neutral-dark mb-6">Setup Progress</h2>
+      <Card className="p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Setup Progress</h2>
         <ProgressBar steps={setupSteps} currentStep={0} />
-        <div className="grid grid-cols-4 gap-4 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           <Link href="/dashboard/business-info">
             <Card className="p-4 text-center hover:shadow-md transition-shadow cursor-pointer">
               <FiUpload className="mx-auto mb-3 text-primary" size={32} />
@@ -132,20 +225,20 @@ export default function DashboardPage() {
 
       {/* Pricing Summary */}
       {(selectedFeatures || selectedTemplate) && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
+        <Card className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-neutral-dark mb-2">Pricing Summary</h2>
-              <p className="text-neutral-gray">
+              <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-2">Pricing Summary</h2>
+              <p className="text-sm sm:text-base text-neutral-gray">
                 {userType === 'hospital' 
                   ? 'Selected features for your website'
                   : `Template #${selectedTemplate} selected`
                 }
               </p>
             </div>
-            <div className="flex items-center gap-2 bg-primary-light px-6 py-3 rounded-lg">
+            <div className="flex items-center gap-2 bg-primary-light px-4 sm:px-6 py-3 rounded-lg w-full sm:w-auto">
               <FiDollarSign className="text-primary" size={24} />
-              <span className="text-3xl font-bold text-primary">{totalPrice}</span>
+              <span className="text-2xl sm:text-3xl font-bold text-primary">{totalPrice}</span>
             </div>
           </div>
           {userType === 'hospital' && selectedFeatures && (
@@ -169,27 +262,29 @@ export default function DashboardPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {stats.map((stat, index) => (
           <Card key={index} className="p-6">
             <p className="text-sm text-neutral-gray mb-2">{stat.label}</p>
-            <p className="text-3xl font-bold text-neutral-dark mb-2">{stat.value}</p>
-            <p className={`text-sm ${stat.change.startsWith('+') ? 'text-success' : 'text-error'}`}>
-              {stat.change} from last month
+            <p className="text-3xl font-bold text-neutral-dark mb-2">
+              <AnimatedNumber value={stat.value} />
+            </p>
+            <p className={`text-sm ${stat.change >= 0 ? 'text-success' : 'text-error'}`}>
+              {formatChange(stat.change)} from last month
             </p>
           </Card>
         ))}
       </div>
 
       {/* AI Assistant Preview */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-neutral-dark">AI Assistant</h2>
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark">AI Assistant</h2>
           <Link href="/dashboard/ai-assistant">
-            <Button variant="ghost">View All</Button>
+            <Button variant="ghost" className="text-sm sm:text-base">View All</Button>
           </Link>
         </div>
-        <div className="bg-neutral-light rounded-lg p-6 h-48 flex items-center justify-center">
+        <div className="bg-neutral-light rounded-lg p-4 sm:p-6 h-40 sm:h-48 flex items-center justify-center">
           <div className="text-center">
             <FiMessageSquare className="mx-auto mb-3 text-ai" size={40} />
             <p className="text-neutral-gray mb-4">Get help with your website</p>

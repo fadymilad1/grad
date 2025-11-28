@@ -7,12 +7,19 @@ import { Toggle } from '@/components/ui/Toggle'
 import { Input } from '@/components/ui/Input'
 import { FiSend, FiMessageSquare, FiLock, FiDollarSign } from 'react-icons/fi'
 
+type ChatMessage = {
+  id: number
+  type: 'ai' | 'user'
+  content: string
+  timestamp: Date
+}
+
 export default function AIAssistantPage() {
   const [enabled, setEnabled] = useState(true)
   const [message, setMessage] = useState('')
   const [hasAIChatbot, setHasAIChatbot] = useState(false)
   const [userType, setUserType] = useState<'hospital' | 'pharmacy'>('hospital')
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 1,
       type: 'ai' as const,
@@ -109,7 +116,7 @@ export default function AIAssistantPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       <div>
         <h1 className="text-3xl font-bold text-neutral-dark mb-2">
           AI Assistant for {userType === 'hospital' ? 'Patients' : 'Customers'}
@@ -262,22 +269,22 @@ export default function AIAssistantPage() {
       )}
 
       {hasAIChatbot && userType === 'hospital' && (
-        <div className="grid grid-cols-3 gap-6">
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">Service Information</h3>
-            <p className="text-sm text-neutral-gray">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">Service Information</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Provide details about medical services, departments, and available specialists
             </p>
           </Card>
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">Doctor Profiles</h3>
-            <p className="text-sm text-neutral-gray">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">Doctor Profiles</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Share information about doctors' specialties, experience, and availability
             </p>
           </Card>
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">General Inquiries</h3>
-            <p className="text-sm text-neutral-gray">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">General Inquiries</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Answer common patient questions about location, hours, and contact information
             </p>
           </Card>
@@ -285,22 +292,22 @@ export default function AIAssistantPage() {
       )}
 
       {hasAIChatbot && userType === 'pharmacy' && (
-        <div className="grid grid-cols-3 gap-6">
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">Product Information</h3>
-            <p className="text-sm text-neutral-gray">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">Product Information</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Provide details about available medications, health products, and pharmacy services
             </p>
           </Card>
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">Health & Wellness Tips</h3>
-            <p className="text-sm text-neutral-gray">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">Health & Wellness Tips</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Share general health advice, wellness tips, and information about over-the-counter products
             </p>
           </Card>
-          <Card className="p-6">
-            <h3 className="font-semibold text-neutral-dark mb-2">Store Information</h3>
-            <p className="text-sm text-neutral-gray">
+          <Card className="p-4 sm:p-6">
+            <h3 className="font-semibold text-neutral-dark mb-2 text-sm sm:text-base">Store Information</h3>
+            <p className="text-xs sm:text-sm text-neutral-gray">
               Answer questions about store hours, location, services, and contact information
             </p>
           </Card>

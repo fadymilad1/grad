@@ -92,16 +92,16 @@ export default function PharmacyTemplatesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-dark mb-2">Choose a Pharmacy Template</h1>
-        <p className="text-neutral-gray">Select a template that matches your pharmacy's style</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-neutral-dark mb-2">Choose a Pharmacy Template</h1>
+        <p className="text-sm sm:text-base text-neutral-gray">Select a template that matches your pharmacy's style</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {templates.map((template) => (
           <Card key={template.id} className="overflow-hidden group cursor-pointer">
-            <div className="h-64 relative overflow-hidden">
+            <div className="h-48 sm:h-64 relative overflow-hidden">
               <Image
                 src={template.image}
                 alt={`${template.name} template preview`}
@@ -109,36 +109,37 @@ export default function PharmacyTemplatesPage() {
                 className="object-cover"
               />
               {template.hasAI && (
-                <div className="absolute top-4 right-4 bg-ai text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm font-medium z-20">
-                  <FiMessageSquare size={16} />
-                  AI Included
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-ai text-white px-2 sm:px-3 py-1 rounded-full flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium z-20">
+                  <FiMessageSquare size={14} className="sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">AI Included</span>
+                  <span className="sm:hidden">AI</span>
                 </div>
               )}
               {/* Hover overlay with features */}
-              <div className="absolute inset-0 z-10 bg-neutral-dark/80 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col p-4">
-                <h4 className="text-lg font-semibold mb-2">Template Features</h4>
-                <ul className="space-y-1 text-sm overflow-y-auto">
+              <div className="absolute inset-0 z-10 bg-neutral-dark/80 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col p-3 sm:p-4">
+                <h4 className="text-base sm:text-lg font-semibold mb-2">Template Features</h4>
+                <ul className="space-y-1 text-xs sm:text-sm overflow-y-auto">
                   {template.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
-                      <FiCheck className="text-success" size={14} />
+                      <FiCheck className="text-success" size={12} />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-semibold text-neutral-dark">
+            <div className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-neutral-dark">
                   {template.name}
                 </h3>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-primary">${template.price}</p>
+                <div className="text-left sm:text-right">
+                  <p className="text-xl sm:text-2xl font-bold text-primary">${template.price}</p>
                   <p className="text-xs text-neutral-gray">one-time</p>
                 </div>
               </div>
-              <p className="text-neutral-gray mb-6">{template.description}</p>
-              <div className="flex gap-3">
+              <p className="text-sm sm:text-base text-neutral-gray mb-4 sm:mb-6">{template.description}</p>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Button
                   variant="secondary"
                   className="flex-1"

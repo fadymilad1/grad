@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
@@ -11,6 +11,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in (temporary - replace with proper auth later)
@@ -21,11 +22,11 @@ export default function DashboardLayout({
   }, [router])
 
   return (
-    <div className="flex min-h-screen bg-neutral-light">
-      <Sidebar />
-      <div className="flex-1 ml-64">
-        <Topbar />
-        <main className="p-6">{children}</main>
+    <div className="flex min-h-screen bg-neutral-light overflow-x-hidden w-full">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 md:ml-64 w-full md:w-auto min-w-0 overflow-x-hidden">
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="p-4 sm:p-6 w-full max-w-full overflow-x-hidden">{children}</main>
       </div>
     </div>
   )

@@ -12,6 +12,7 @@ import {
   FiMessageSquare,
   FiSettings,
   FiLogOut,
+  FiX,
 } from 'react-icons/fi'
 
 interface SidebarItem {
@@ -22,9 +23,11 @@ interface SidebarItem {
 
 interface SidebarProps {
   userType?: 'hospital' | 'pharmacy'
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ userType }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ userType, isOpen = true, onClose }) => {
   const pathname = usePathname()
   const router = useRouter()
   const [currentUserType, setCurrentUserType] = useState<'hospital' | 'pharmacy'>('hospital')
@@ -70,27 +73,44 @@ export const Sidebar: React.FC<SidebarProps> = ({ userType }) => {
   const isActive = (href: string) => pathname === href
 
   return (
-    <div className="w-64 bg-white border-r border-neutral-border h-screen fixed left-0 top-0 flex flex-col">
-      <div className="p-6 border-b border-neutral-border">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="relative h-10 w-10 flex-shrink-0">
-            <Image
-              src="/logo.jpg"
-              alt="Medify logo"
-              fill
-              className="object-contain"
-              sizes="40px"
-              priority
-            />
-          </div>
-          <span className="text-2xl font-bold text-primary">Medify</span>
-        </Link>
-      </div>
-      <nav className="flex-1 p-4">
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <div className={`w-64 bg-white border-r border-neutral-border h-screen fixed left-0 top-0 flex flex-col z-50 transform transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0`}>
+        <div className="p-4 sm:p-6 border-b border-neutral-border flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3" onClick={onClose}>
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+              <Image
+                src="/logo.jpg"
+                alt="Medify logo"
+                fill
+                className="object-contain"
+                sizes="40px"
+                priority
+              />
+            </div>
+            <span className="text-xl sm:text-2xl font-bold text-primary">Medify</span>
+          </Link>
+          <button
+            onClick={onClose}
+            className="md:hidden p-2 text-neutral-gray hover:text-neutral-dark"
+          >
+            <FiX size={24} />
+          </button>
+        </div>
+      <nav className="flex-1 p-4 overflow-y-auto">
         {menuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
+            onClick={onClose}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
               isActive(item.href)
                 ? 'bg-primary-light text-primary font-medium'
@@ -98,20 +118,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ userType }) => {
             }`}
           >
             {item.icon}
-            <span>{item.label}</span>
+            <span className="text-sm sm:text-base">{item.label}</span>
           </Link>
         ))}
       </nav>
       <div className="p-4 border-t border-neutral-border">
         <button 
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-neutral-light w-full transition-colors"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-neutral-light w-full transition-colors text-sm sm:text-base"
         >
           <FiLogOut />
           <span>Logout</span>
         </button>
       </div>
     </div>
+    </>
   )
 }
 

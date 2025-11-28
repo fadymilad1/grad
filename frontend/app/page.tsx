@@ -163,14 +163,70 @@ export default function LandingPage() {
   ]
 
   const [testimonialIndex, setTestimonialIndex] = useState(0)
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+  const [templateTouchStart, setTemplateTouchStart] = useState(0)
+  const [templateTouchEnd, setTemplateTouchEnd] = useState(0)
 
-  const visibleTestimonials = testimonials.length
-    ? [
-        testimonials[testimonialIndex],
-        testimonials[(testimonialIndex + 1) % testimonials.length],
-        testimonials[(testimonialIndex + 2) % testimonials.length],
-      ]
-    : []
+  // Handle touch swipe for mobile testimonials
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      setTestimonialIndex((prev) =>
+        testimonials.length ? (prev + 1) % testimonials.length : 0
+      )
+    }
+    if (isRightSwipe) {
+      setTestimonialIndex((prev) =>
+        testimonials.length ? (prev - 1 + testimonials.length) % testimonials.length : 0
+      )
+    }
+    
+    // Reset touch values
+    setTouchStart(0)
+    setTouchEnd(0)
+  }
+
+  // Handle touch swipe for mobile templates
+  const handleTemplateTouchStart = (e: React.TouchEvent) => {
+    setTemplateTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTemplateTouchMove = (e: React.TouchEvent) => {
+    setTemplateTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTemplateTouchEnd = () => {
+    if (!templateTouchStart || !templateTouchEnd) return
+    
+    const distance = templateTouchStart - templateTouchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      setCurrentTemplate((prev) => (prev + 1) % templates.length)
+    }
+    if (isRightSwipe) {
+      setCurrentTemplate((prev) => (prev - 1 + templates.length) % templates.length)
+    }
+    
+    // Reset touch values
+    setTemplateTouchStart(0)
+    setTemplateTouchEnd(0)
+  }
 
   const handleNextTemplate = () => {
     setCurrentTemplate((prev) => (prev + 1) % templates.length)
@@ -181,12 +237,12 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden w-full">
       {/* Navigation */}
-      <nav className="border-b border-neutral-border">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="relative h-10 w-10 flex-shrink-0">
+      <nav className="border-b border-neutral-border overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between w-full">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3">
+            <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
               <Image
                 src="/logo.jpg"
                 alt="Medify logo"
@@ -196,61 +252,64 @@ export default function LandingPage() {
                 priority
               />
             </div>
-            <span className="text-2xl font-bold text-primary">Medify</span>
+            <span className="text-xl sm:text-2xl font-bold text-primary">Medify</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-neutral-gray hover:text-primary transition-colors">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/login" className="text-sm sm:text-base text-neutral-gray hover:text-primary transition-colors">
               Login
             </Link>
             <Link href="/signup">
-              <Button>Get Started</Button>
+              <Button className="text-sm sm:text-base px-4 sm:px-6 py-2">Get Started</Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-2 gap-12 items-center">
-        <div>
-          <h1 className="text-5xl font-bold text-neutral-dark mb-6">
-            Build Your Medical Website in Minutes
-          </h1>
-          <p className="text-xl text-neutral-gray mb-10 max-w-2xl">
-            Create professional websites for hospitals and pharmacies with our easy-to-use platform.
-          </p>
-          <div className="flex items-center gap-4">
-            <Link href="/signup?type=hospital">
-              <Button variant="primary" className="text-lg px-8 py-4">
-                Create Hospital Website
-              </Button>
-            </Link>
-            <Link href="/signup?type=pharmacy">
-              <Button variant="secondary" className="text-lg px-8 py-4">
-                Create Pharmacy Website
-              </Button>
-            </Link>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="order-2 md:order-1">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-neutral-dark mb-4 sm:mb-6">
+              Build Your Medical Website in Minutes
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-neutral-gray mb-6 sm:mb-10 max-w-2xl">
+              Create professional websites for hospitals and pharmacies with our easy-to-use platform.
+            </p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+              <Link href="/signup?type=hospital" className="flex-1 sm:flex-initial">
+                <Button variant="primary" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4">
+                  Create Hospital Website
+                </Button>
+              </Link>
+              <Link href="/signup?type=pharmacy" className="flex-1 sm:flex-initial">
+                <Button variant="secondary" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4">
+                  Create Pharmacy Website
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-        <div className="relative h-80">
-          <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-xl">
-            <Image
-              src="/hero-hospital.jpg"
-              alt="Hospital website preview"
-              fill
-              className="object-cover"
-              priority
-            />
+          <div className="relative h-64 sm:h-80 order-1 md:order-2 w-full max-w-full">
+            <div className="absolute inset-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl w-full">
+              <Image
+                src="/hero-hospital.jpg"
+                alt="Hospital website preview"
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Steps Section */}
-      <section className="bg-neutral-light py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-neutral-dark mb-12">
+      <section className="bg-neutral-light py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-neutral-dark mb-8 sm:mb-12">
             How It Works
           </h2>
-          <div className="grid grid-cols-2 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-8 sm:mb-12">
             {/* Hospital Flow */}
             <div>
               <h3 className="text-2xl font-semibold text-neutral-dark mb-6 text-center">
@@ -297,25 +356,68 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pharmacy Templates (no horizontal scroll) */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-neutral-dark mb-12">
+      {/* Pharmacy Templates */}
+      <section className="py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-neutral-dark mb-8 sm:mb-12">
             Pharmacy Templates
           </h2>
-          <div className="grid grid-cols-3 gap-6 mb-6">
+          {/* Mobile: Single template with swipe */}
+          <div className="block md:hidden mb-6">
+            <div
+              className="overflow-hidden"
+              onTouchStart={handleTemplateTouchStart}
+              onTouchMove={handleTemplateTouchMove}
+              onTouchEnd={handleTemplateTouchEnd}
+            >
+              <div
+                className="flex transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `translateX(-${currentTemplate * 100}%)`,
+                }}
+              >
+                {templates.map((template, index) => (
+                  <div key={index} className="min-w-full px-2">
+                    <Card
+                      className={`${index === currentTemplate ? 'ring-2 ring-primary' : ''}`}
+                      onClick={() => setCurrentTemplate(index)}
+                    >
+                      <div className="h-64 bg-neutral-light rounded-t-lg flex items-center justify-center relative overflow-hidden w-full max-w-full">
+                        <Image
+                          src={template.image}
+                          alt={template.name}
+                          fill
+                          className="object-contain bg-neutral-light"
+                          sizes="100vw"
+                        />
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold text-neutral-dark mb-2">
+                          {template.name}
+                        </h3>
+                        <p className="text-neutral-gray">{template.description}</p>
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Desktop: 3 templates grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
             {templates.map((template, index) => (
               <Card
                 key={index}
-                className={`${index === currentTemplate ? 'ring-2 ring-primary' : ''}`}
+                className={`${index === currentTemplate ? 'ring-2 ring-primary' : ''} cursor-pointer`}
                 onClick={() => setCurrentTemplate(index)}
               >
-                <div className="h-64 bg-neutral-light rounded-t-lg flex items-center justify-center relative overflow-hidden">
+                <div className="h-64 bg-neutral-light rounded-t-lg flex items-center justify-center relative overflow-hidden w-full max-w-full">
                   <Image
                     src={template.image}
                     alt={template.name}
                     fill
                     className="object-contain bg-neutral-light"
+                    sizes="(max-width: 1024px) 50vw, 33vw"
                   />
                 </div>
                 <div className="p-6">
@@ -333,6 +435,7 @@ export default function LandingPage() {
               type="button"
               onClick={handlePrevTemplate}
               className="p-2 rounded-full border border-neutral-border text-neutral-gray hover:text-primary hover:border-primary transition-colors"
+              aria-label="Previous template"
             >
               <FiChevronLeft size={20} />
             </button>
@@ -342,9 +445,10 @@ export default function LandingPage() {
                   key={index}
                   type="button"
                   onClick={() => setCurrentTemplate(index)}
-                  className={`w-2.5 h-2.5 rounded-full ${
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
                     index === currentTemplate ? 'bg-primary' : 'bg-neutral-border'
                   }`}
+                  aria-label={`Go to template ${index + 1}`}
                 />
               ))}
             </div>
@@ -352,6 +456,7 @@ export default function LandingPage() {
               type="button"
               onClick={handleNextTemplate}
               className="p-2 rounded-full border border-neutral-border text-neutral-gray hover:text-primary hover:border-primary transition-colors"
+              aria-label="Next template"
             >
               <FiChevronRight size={20} />
             </button>
@@ -360,9 +465,9 @@ export default function LandingPage() {
       </section>
 
       {/* AI Assistant Feature */}
-      <section className="bg-neutral-light py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 gap-12 items-center">
+      <section className="bg-neutral-light py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-neutral-dark mb-6">
                 AI-Powered Assistant
@@ -379,13 +484,14 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="bg-white rounded-lg p-8 shadow-lg">
-              <div className="bg-neutral-light rounded-lg p-0 h-64 overflow-hidden relative">
+            <div className="bg-white rounded-lg p-6 sm:p-8 shadow-lg w-full max-w-full">
+              <div className="bg-neutral-light rounded-lg p-0 h-64 overflow-hidden relative w-full max-w-full">
                 <Image
                   src="/chatbot.jpg"
                   alt="AI assistant chatbot helping build a medical website"
                   fill
                   className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>
             </div>
@@ -394,12 +500,12 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Plans */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-neutral-dark mb-12">
+      <section className="py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-neutral-dark mb-8 sm:mb-12">
             Pricing Plans
           </h2>
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {pricingPlans.map((plan) => (
               <Card
                 key={plan.name}
@@ -437,13 +543,55 @@ export default function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="bg-neutral-light py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center text-neutral-dark mb-12">
+      <section className="bg-neutral-light py-12 sm:py-20 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center text-neutral-dark mb-8 sm:mb-12">
             What Our Customers Say
           </h2>
-          <div className="grid grid-cols-3 gap-8 mb-8">
-            {visibleTestimonials.map((testimonial, index) => (
+          {/* Mobile: Single testimonial with swipe */}
+          <div className="block md:hidden mb-8">
+            <div
+              className="overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              <div
+                className="flex transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `translateX(-${testimonialIndex * 100}%)`,
+                }}
+              >
+                {testimonials.map((testimonial, index) => (
+                  <div key={`${testimonial?.name}-${index}`} className="min-w-full px-2">
+                    <Card className="p-6">
+                      <div className="flex gap-1 mb-4">
+                        {[...(testimonial?.rating ? Array(testimonial.rating) : [])].map((_, i) => (
+                          <FiStar key={i} className="text-warning fill-warning" />
+                        ))}
+                      </div>
+                      <p className="text-neutral-gray mb-6">{testimonial?.content}</p>
+                      <div>
+                        <p className="font-semibold text-neutral-dark">
+                          {testimonial?.name}
+                        </p>
+                        <p className="text-sm text-neutral-gray">
+                          {testimonial?.role}, {testimonial?.company}
+                        </p>
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Desktop: 3 testimonials grid */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
+            {[
+              testimonials[testimonialIndex],
+              testimonials[(testimonialIndex + 1) % testimonials.length],
+              testimonials[(testimonialIndex + 2) % testimonials.length],
+            ].map((testimonial, index) => (
               <Card key={`${testimonial?.name}-${index}`} className="p-6">
                 <div className="flex gap-1 mb-4">
                   {[...(testimonial?.rating ? Array(testimonial.rating) : [])].map((_, i) => (
@@ -472,6 +620,7 @@ export default function LandingPage() {
                 )
               }
               className="p-2 rounded-full border border-neutral-border text-neutral-gray hover:text-primary hover:border-primary transition-colors"
+              aria-label="Previous testimonial"
             >
               <FiChevronLeft size={20} />
             </button>
@@ -481,9 +630,10 @@ export default function LandingPage() {
                   key={index}
                   type="button"
                   onClick={() => setTestimonialIndex(index)}
-                  className={`w-2.5 h-2.5 rounded-full ${
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
                     index === testimonialIndex ? 'bg-primary' : 'bg-neutral-border'
                   }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
                 />
               ))}
             </div>
@@ -495,6 +645,7 @@ export default function LandingPage() {
                 )
               }
               className="p-2 rounded-full border border-neutral-border text-neutral-gray hover:text-primary hover:border-primary transition-colors"
+              aria-label="Next testimonial"
             >
               <FiChevronRight size={20} />
             </button>
@@ -503,9 +654,9 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-neutral-dark text-white py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-8 mb-8">
+      <footer className="bg-neutral-dark text-white py-8 sm:py-12 overflow-x-hidden w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8 text-center sm:text-left">
             <div>
               <h3 className="text-xl font-bold mb-4">Medify</h3>
               <p className="text-neutral-gray">

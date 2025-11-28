@@ -65,7 +65,7 @@ export default function BusinessInfoPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Google Maps script with Places library (requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) */}
       <Script
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''}&libraries=places`}
@@ -73,15 +73,15 @@ export default function BusinessInfoPage() {
       />
 
       <div>
-        <h1 className="text-3xl font-bold text-neutral-dark mb-2">Business Information</h1>
-        <p className="text-neutral-gray">Add your business details to complete your website</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-neutral-dark mb-2">Business Information</h1>
+        <p className="text-sm sm:text-base text-neutral-gray">Add your business details to complete your website</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           {/* Basic Info */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-neutral-dark mb-6">Basic Information</h2>
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Basic Information</h2>
             <div className="space-y-4">
               <Input
                 label="Business Name"
@@ -106,8 +106,8 @@ export default function BusinessInfoPage() {
           </Card>
 
           {/* Address & Map */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-neutral-dark mb-6">Location</h2>
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Location</h2>
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
                 <FiMapPin className="text-primary" />
@@ -125,14 +125,14 @@ export default function BusinessInfoPage() {
           </Card>
 
           {/* Working Hours */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-neutral-dark mb-6">Working Hours</h2>
-            <div className="space-y-4">
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Working Hours</h2>
+            <div className="space-y-3 sm:space-y-4">
               {days.map((day) => {
                 const dayData = formData.workingHours[day.key as keyof typeof formData.workingHours]
                 return (
-                  <div key={day.key} className="flex items-center gap-4">
-                    <div className="w-24">
+                  <div key={day.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pb-3 sm:pb-0 border-b border-neutral-border sm:border-b-0 last:border-b-0">
+                    <div className="w-full sm:w-24 flex-shrink-0">
                       <label className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -155,7 +155,7 @@ export default function BusinessInfoPage() {
                       </label>
                     </div>
                     {!dayData.closed ? (
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 w-full">
                         <Input
                           type="time"
                           value={dayData.open}
@@ -168,9 +168,9 @@ export default function BusinessInfoPage() {
                               },
                             })
                           }}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         />
-                        <span className="text-neutral-gray">to</span>
+                        <span className="text-neutral-gray text-center sm:text-left hidden sm:inline">to</span>
                         <Input
                           type="time"
                           value={dayData.close}
@@ -183,11 +183,11 @@ export default function BusinessInfoPage() {
                               },
                             })
                           }}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         />
                       </div>
                     ) : (
-                      <span className="text-neutral-gray">Closed</span>
+                      <span className="text-neutral-gray text-sm sm:text-base">Closed</span>
                     )}
                   </div>
                 )
@@ -196,9 +196,9 @@ export default function BusinessInfoPage() {
           </Card>
 
           {/* Contact Information */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-neutral-dark mb-6">Contact Information</h2>
-            <div className="grid grid-cols-2 gap-4">
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-dark mb-4 sm:mb-6">Contact Information</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 label="Phone"
                 placeholder="+1 (555) 123-4567"

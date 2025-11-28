@@ -67,8 +67,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-light flex items-center justify-center p-6">
-      <div className="max-w-4xl w-full grid grid-cols-2 gap-8">
+    <div className="min-h-screen bg-neutral-light flex items-center justify-center p-4 sm:p-6 overflow-x-hidden w-full">
+      <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-full">
         {/* Left Side - Illustration */}
         <div className="bg-primary-light rounded-lg p-12 flex items-center justify-center hidden md:flex">
           <div className="text-center">
@@ -85,15 +85,15 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side - Form */}
-        <div className="bg-white rounded-lg shadow-lg p-8 flex flex-col justify-center">
-          <div className="mb-8">
-            <Link href="/" className="text-2xl font-bold text-primary mb-2 inline-block">
+        <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 flex flex-col justify-center">
+          <div className="mb-6 sm:mb-8">
+            <Link href="/" className="text-xl sm:text-2xl font-bold text-primary mb-2 inline-block">
               Medify
             </Link>
-            <h1 className="text-3xl font-bold text-neutral-dark mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-dark mb-2">
               Login to Your Account
             </h1>
-            <p className="text-neutral-gray">
+            <p className="text-sm sm:text-base text-neutral-gray">
               Don't have an account?{' '}
               <Link href="/signup" className="text-primary hover:underline">
                 Sign up

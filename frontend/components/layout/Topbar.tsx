@@ -1,10 +1,120 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { FiBell, FiSearch } from 'react-icons/fi'
+import React, { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { FiBell, FiSearch, FiMenu } from 'react-icons/fi'
 
-export const Topbar: React.FC = () => {
+interface TopbarProps {
+  onMenuClick?: () => void
+}
+
+type NotificationItem = {
+  id: string
+  message: string
+  timestamp: string
+  read: boolean
+}
+
+type SearchItem = {
+  label: string
+  description: string
+  keywords: string[]
+  userTypes?: Array<'hospital' | 'pharmacy'>
+  href?: string
+  getHref?: (userType: 'hospital' | 'pharmacy') => string
+}
+
+const fallbackNotifications: NotificationItem[] = [
+  {
+    id: '1',
+    message: 'New order received for 12 prescription items.',
+    timestamp: '5m ago',
+    read: false,
+  },
+  {
+    id: '2',
+    message: 'Template customization saved successfully.',
+    timestamp: '1h ago',
+    read: false,
+  },
+  {
+    id: '3',
+    message: 'Your subscription renews in 3 days.',
+    timestamp: 'Yesterday',
+    read: true,
+  },
+]
+
+export const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
+  const router = useRouter()
   const [userName, setUserName] = useState('User')
+  const [currentUserType, setCurrentUserType] = useState<'hospital' | 'pharmacy'>('hospital')
+  const [notifications, setNotifications] = useState<NotificationItem[]>(fallbackNotifications)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownMenuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  const searchRef = useRef<HTMLDivElement>(null)
+  const searchDropdownRef = useRef<HTMLDivElement>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchItem[]>([])
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchDropdownPosition, setSearchDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  })
+
+  const searchItems: SearchItem[] = [
+    {
+      label: 'Dashboard',
+      description: 'Overview of your workspace',
+      href: '/dashboard',
+      keywords: ['home', 'overview', 'progress', 'setup progress', 'stats'],
+    },
+    {
+      label: 'My Website',
+      description: 'Products & Information hub',
+      keywords: ['my website', 'products', 'information', 'products & information', 'catalog', 'content'],
+      getHref: (userType) =>
+        userType === 'pharmacy' ? '/dashboard/pharmacy/setup' : '/dashboard/hospital/setup',
+    },
+    {
+      label: 'Business Info',
+      description: 'Update business details',
+      href: '/dashboard/business-info',
+      keywords: ['info', 'details', 'profile', 'contact'],
+    },
+    {
+      label: 'Hospital Setup',
+      description: 'Configure hospital website',
+      href: '/dashboard/hospital/setup',
+      keywords: ['hospital', 'setup', 'departments', 'services'],
+      userTypes: ['hospital'],
+    },
+    {
+      label: 'Pharmacy Setup',
+      description: 'Add pharmacy products',
+      href: '/dashboard/pharmacy/setup',
+      keywords: ['pharmacy', 'setup', 'products', 'inventory'],
+      userTypes: ['pharmacy'],
+    },
+    {
+      label: 'Templates',
+      description: 'Choose pharmacy templates',
+      href: '/dashboard/pharmacy/templates',
+      keywords: ['templates', 'design', 'themes'],
+      userTypes: ['pharmacy'],
+    },
+    { label: 'AI Assistant', description: 'Get AI help', href: '/dashboard/ai-assistant', keywords: ['assistant', 'chatbot'] },
+    {
+      label: 'Settings',
+      description: 'Manage preferences',
+      href: '/dashboard/settings',
+      keywords: ['settings', 'preferences', 'account'],
+    },
+  ]
 
   useEffect(() => {
     // Get user name from localStorage
@@ -13,34 +123,298 @@ export const Topbar: React.FC = () => {
       try {
         const user = JSON.parse(userData)
         setUserName(user.name || 'User')
+        setCurrentUserType(user.businessType || 'hospital')
       } catch (e) {
         // Handle error
       }
     }
   }, [])
 
+  useEffect(() => {
+    const storedNotifications = localStorage.getItem('notifications')
+    if (storedNotifications) {
+      try {
+        const parsed = JSON.parse(storedNotifications)
+        if (Array.isArray(parsed) && parsed.length) {
+          setNotifications(parsed)
+        }
+      } catch {
+        // ignore parse errors, fallback data already set
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications))
+  }, [notifications])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const targetNode = event.target as Node
+      const clickedInsideTrigger = dropdownRef.current?.contains(targetNode)
+      const clickedInsideMenu = dropdownMenuRef.current?.contains(targetNode)
+      if (!clickedInsideTrigger && !clickedInsideMenu) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
+  useEffect(() => {
+    const handleSearchClickOutside = (event: MouseEvent) => {
+      const targetNode = event.target as Node
+      const insideInput = searchRef.current?.contains(targetNode)
+      const insideDropdown = searchDropdownRef.current?.contains(targetNode)
+      if (!insideInput && !insideDropdown) {
+        setIsSearchOpen(false)
+      }
+    }
+
+    if (isSearchOpen) {
+      document.addEventListener('mousedown', handleSearchClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleSearchClickOutside)
+    }
+  }, [isSearchOpen])
+
+  const updateSearchDropdownPosition = () => {
+    if (!searchRef.current) return
+    const rect = searchRef.current.getBoundingClientRect()
+    setSearchDropdownPosition({
+      top: rect.bottom + 8,
+      left: rect.left,
+      width: rect.width,
+    })
+  }
+
+  useEffect(() => {
+    if (isSearchOpen) {
+      updateSearchDropdownPosition()
+      window.addEventListener('resize', updateSearchDropdownPosition)
+      window.addEventListener('scroll', updateSearchDropdownPosition, true)
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateSearchDropdownPosition)
+      window.removeEventListener('scroll', updateSearchDropdownPosition, true)
+    }
+  }, [isSearchOpen])
+
+  const unreadCount = notifications.filter((notification) => !notification.read).length
+
+  const updateDropdownPosition = () => {
+    if (!triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const dropdownWidth = 288 // matching w-72
+    setDropdownPosition({
+      top: rect.bottom + 8,
+      left: rect.right - dropdownWidth,
+    })
+  }
+
+  useEffect(() => {
+    if (isDropdownOpen) {
+      updateDropdownPosition()
+      window.addEventListener('resize', updateDropdownPosition)
+      window.addEventListener('scroll', updateDropdownPosition, true)
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateDropdownPosition)
+      window.removeEventListener('scroll', updateDropdownPosition, true)
+    }
+  }, [isDropdownOpen])
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev)
+  }
+
+  const markAsRead = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    )
+  }
+
+  const markAllAsRead = () => {
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })))
+  }
+
+  const clearNotifications = () => {
+    setNotifications([])
+  }
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    setSearchQuery(value)
+    if (!value.trim()) {
+      setSearchResults([])
+      setIsSearchOpen(false)
+      return
+    }
+
+    const normalized = value.toLowerCase()
+    const filtered = searchItems.filter((item) => {
+      const matchesUserType = !item.userTypes || item.userTypes.includes(currentUserType)
+      if (!matchesUserType) return false
+
+      const labelMatch = item.label.toLowerCase().includes(normalized)
+      const descriptionMatch = item.description.toLowerCase().includes(normalized)
+      const keywordMatch = item.keywords.some((keyword) => keyword.toLowerCase().includes(normalized))
+
+      return labelMatch || descriptionMatch || keywordMatch
+    })
+
+    setSearchResults(filtered)
+    setIsSearchOpen(true)
+  }
+
+  const resolveHref = (item: SearchItem) => (item.getHref ? item.getHref(currentUserType) : item.href)
+
+  const handleSearchSelect = (item: SearchItem) => {
+    const href = resolveHref(item)
+    if (!href) return
+    router.push(href)
+    setIsSearchOpen(false)
+    setSearchQuery('')
+  }
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!searchQuery.trim() || searchResults.length === 0) return
+    handleSearchSelect(searchResults[0])
+  }
+
   return (
-    <div className="h-16 bg-white border-b border-neutral-border flex items-center justify-between px-6">
-      <div className="flex-1 max-w-md">
-        <div className="relative">
+    <div className="h-16 bg-white border-b border-neutral-border flex items-center justify-between px-4 sm:px-6 overflow-x-hidden w-full max-w-full">
+      <button
+        onClick={onMenuClick}
+        className="md:hidden p-2 text-neutral-gray hover:text-neutral-dark transition-colors mr-2"
+      >
+        <FiMenu size={24} />
+      </button>
+      <div className="flex-1 max-w-md hidden sm:block" ref={searchRef}>
+        <form className="relative" onSubmit={handleSearchSubmit}>
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-gray" />
           <input
             type="text"
-            placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 border border-neutral-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search pages, actions..."
+            className="w-full pl-10 pr-4 py-2 border border-neutral-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
           />
-        </div>
+          {isSearchOpen && (
+            <div
+              ref={searchDropdownRef}
+              className="fixed bg-white border border-neutral-border rounded-lg shadow-lg z-40"
+              style={{
+                top: searchDropdownPosition.top,
+                left: searchDropdownPosition.left,
+                width: searchDropdownPosition.width,
+              }}
+            >
+              {searchResults.length === 0 ? (
+                <p className="text-sm text-neutral-gray px-4 py-3">No matches found.</p>
+              ) : (
+                searchResults.map((result) => {
+                  const key = `${resolveHref(result) || result.label}-${result.label}`
+                  return (
+                    <button
+                      type="button"
+                      key={key}
+                      onClick={() => handleSearchSelect(result)}
+                      className="w-full text-left px-4 py-3 hover:bg-neutral-light transition-colors"
+                    >
+                      <p className="text-sm text-neutral-dark font-medium">{result.label}</p>
+                      <p className="text-xs text-neutral-gray">{result.description}</p>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          )}
+        </form>
       </div>
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 text-neutral-gray hover:text-neutral-dark transition-colors">
-          <FiBell size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-        </button>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
+      <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+        <div className="relative" ref={dropdownRef}>
+          <button
+            ref={triggerRef}
+            onClick={toggleDropdown}
+            className="relative p-2 text-neutral-gray hover:text-neutral-dark transition-colors"
+            aria-label="Notifications"
+          >
+            <FiBell size={20} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+            )}
+          </button>
+          {isDropdownOpen && (
+            <div
+              ref={dropdownMenuRef}
+              className="fixed w-72 bg-white border border-neutral-border rounded-lg shadow-lg z-50"
+              style={{ top: dropdownPosition.top, left: dropdownPosition.left }}
+            >
+              <div className="flex items-center justify-between p-3 border-b border-neutral-border">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-dark">Notifications</p>
+                  <p className="text-xs text-neutral-gray">
+                    {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
+                  </p>
+                </div>
+                <button
+                  onClick={markAllAsRead}
+                  className="text-xs text-primary hover:underline"
+                  disabled={unreadCount === 0}
+                >
+                  Mark all read
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <p className="text-sm text-center text-neutral-gray py-6">No notifications yet.</p>
+                ) : (
+                  notifications.map((notification) => (
+                    <button
+                      key={notification.id}
+                      onClick={() => markAsRead(notification.id)}
+                      className={`w-full text-left px-4 py-3 text-sm border-b border-neutral-border last:border-b-0 transition-colors ${
+                        notification.read ? 'bg-white' : 'bg-neutral-light/60'
+                      }`}
+                    >
+                      <p className="text-neutral-dark">{notification.message}</p>
+                      <span className="text-xs text-neutral-gray">{notification.timestamp}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+              {notifications.length > 0 && (
+                <button
+                  onClick={clearNotifications}
+                  className="w-full text-xs text-error py-2 border-t border-neutral-border hover:bg-neutral-light transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base">
             {userName.charAt(0).toUpperCase()}
           </div>
-          <span className="text-neutral-dark font-medium">{userName}</span>
+          <span className="text-neutral-dark font-medium text-sm sm:text-base hidden sm:inline">{userName}</span>
         </div>
       </div>
     </div>
