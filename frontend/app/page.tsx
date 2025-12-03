@@ -244,7 +244,7 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2 sm:gap-3">
             <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
               <Image
-                src="/logo.jpg"
+                src="/Gemini_Generated_logo.png"
                 alt="Medify logo"
                 fill
                 className="object-contain"

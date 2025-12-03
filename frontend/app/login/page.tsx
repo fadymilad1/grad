@@ -38,29 +38,41 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call - replace with actual API call later
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // Check if user exists in localStorage (temporary - replace with proper auth later)
-      const userData = localStorage.getItem('user')
-      if (userData) {
-        // Store login session
-        localStorage.setItem('isLoggedIn', 'true')
-        // Redirect to dashboard
-        router.push('/dashboard')
-      } else {
-        // For demo purposes, allow login with any credentials
-        // In production, this would check against a backend API
-        localStorage.setItem('isLoggedIn', 'true')
-        localStorage.setItem('user', JSON.stringify({
-          name: email.split('@')[0],
-          email: email,
-          businessType: 'hospital',
-        }))
-        router.push('/dashboard')
+      // Call backend API for login
+      const response = await fetch('http://localhost:8000/api/auth/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Handle error response
+        if (response.status === 401) {
+          setErrors({ submit: 'Invalid email or password. Please check your credentials.' })
+        } else {
+          setErrors({ submit: data.error || 'Something went wrong. Please try again.' })
+        }
+        return
       }
+
+      // Store user data and tokens
+      localStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+      localStorage.setItem('isLoggedIn', 'true')
+
+      // Redirect to dashboard
+      router.push('/dashboard')
     } catch (error) {
-      setErrors({ submit: 'Something went wrong. Please try again.' })
+      console.error('Login error:', error)
+      setErrors({ submit: 'Network error. Please check if the backend server is running.' })
     } finally {
       setIsLoading(false)
     }

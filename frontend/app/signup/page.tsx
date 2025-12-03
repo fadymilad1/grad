@@ -70,15 +70,43 @@ function SignupForm() {
     setErrors({})
 
     try {
-      // Simulate API call - replace with actual API call later
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // Store user data in localStorage (temporary - replace with proper auth later)
-      localStorage.setItem('user', JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        businessType: formData.businessType,
-      }))
+      // Call backend API for signup
+      const response = await fetch('http://localhost:8000/api/auth/signup/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+          password_confirm: formData.confirmPassword,
+          name: formData.name.trim(),
+          business_type: formData.businessType,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        // Handle validation errors
+        if (data.email) {
+          setErrors({ email: data.email[0] })
+        } else if (data.password) {
+          setErrors({ password: data.password[0] })
+        } else if (data.non_field_errors) {
+          setErrors({ submit: data.non_field_errors[0] })
+        } else {
+          setErrors({ submit: 'Registration failed. Please try again.' })
+        }
+        return
+      }
+
+      // Store user data and tokens
+      localStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('website_setup_id', data.website_setup_id)
 
       setSuccess(true)
       
@@ -87,7 +115,8 @@ function SignupForm() {
         router.push('/dashboard')
       }, 1000)
     } catch (error) {
-      setErrors({ submit: 'Something went wrong. Please try again.' })
+      console.error('Signup error:', error)
+      setErrors({ submit: 'Network error. Please check if the backend server is running.' })
     } finally {
       setIsLoading(false)
     }
